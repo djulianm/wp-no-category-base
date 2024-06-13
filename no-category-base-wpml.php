@@ -89,11 +89,19 @@ function no_category_base_rewrite_rules($category_rewrite) {
 	if ( class_exists( 'Sitepress' ) ) {
 		global $sitepress;
 
+		//Ensure we remove all filters to collect all categories
+		remove_filter( 'get_terms_args', array( $sitepress, 'get_terms_args_filter' ) );
+		remove_filter( 'get_term', array( $sitepress, 'get_term_adjust_id' ), 1 );
 		remove_filter( 'terms_clauses', array( $sitepress, 'terms_clauses' ) );
-		$categories = get_categories( array( 'hide_empty' => false ) );
+		
+		$categories = get_categories( array( 'hide_empty' => false, '_icl_show_all_langs' => true ) );
+		
 		//Fix provided by Albin here https://wordpress.org/support/topic/bug-with-wpml-2/#post-8362218
-		//add_filter( 'terms_clauses', array( $sitepress, 'terms_clauses' ) );
-		add_filter( 'terms_clauses', array( $sitepress, 'terms_clauses' ), 10, 4 );
+		add_filter( 'terms_clauses', array( $sitepress, 'terms_clauses' ), 10, 3 );
+		//Ensure we add all filters again
+		add_filter( 'get_term', array( $sitepress, 'get_term_adjust_id' ), 1, 1 );
+		add_filter( 'get_terms_args', array( $sitepress, 'get_terms_args_filter' ), 10, 2 );
+		
 	} else {
 		$categories = get_categories( array( 'hide_empty' => false, 'parent' => 0 ) );
 	}
